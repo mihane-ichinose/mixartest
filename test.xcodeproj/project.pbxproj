@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1336E7752BB722420000BBFD /* OpenCVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1336E7742BB722420000BBFD /* OpenCVWrapper.mm */; };
 		1336E7782BB7252C0000BBFD /* drinkingglasses.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1336E7772BB7252C0000BBFD /* drinkingglasses.jpg */; };
+		13658C542BBF2765000054F3 /* opencv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 13658C532BBF2765000054F3 /* opencv2.xcframework */; };
 		13B5BF652BB2505900D8A8F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B5BF642BB2505900D8A8F8 /* AppDelegate.swift */; };
 		13B5BF672BB2505900D8A8F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B5BF662BB2505900D8A8F8 /* ContentView.swift */; };
 		13B5BF692BB2505900D8A8F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B5BF682BB2505900D8A8F8 /* Assets.xcassets */; };
@@ -41,6 +42,7 @@
 		1336E7742BB722420000BBFD /* OpenCVWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenCVWrapper.mm; sourceTree = "<group>"; };
 		1336E7762BB722BF0000BBFD /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		1336E7772BB7252C0000BBFD /* drinkingglasses.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = drinkingglasses.jpg; sourceTree = "<group>"; };
+		13658C532BBF2765000054F3 /* opencv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = opencv2.xcframework; path = ../../../opencv2.xcframework; sourceTree = "<group>"; };
 		13B5BF612BB2505900D8A8F8 /* test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = test.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B5BF642BB2505900D8A8F8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		13B5BF662BB2505900D8A8F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13658C542BBF2765000054F3 /* opencv2.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,8 +108,9 @@
 				13B5BF662BB2505900D8A8F8 /* ContentView.swift */,
 				1336E7732BB722420000BBFD /* OpenCVWrapper.h */,
 				1336E7742BB722420000BBFD /* OpenCVWrapper.mm */,
-				1336E7772BB7252C0000BBFD /* drinkingglasses.jpg */,
 				13B5BF682BB2505900D8A8F8 /* Assets.xcassets */,
+				1336E7772BB7252C0000BBFD /* drinkingglasses.jpg */,
+				13658C532BBF2765000054F3 /* opencv2.xcframework */,
 				13B5BF6A2BB2505900D8A8F8 /* Preview Content */,
 				1336E7722BB722420000BBFD /* test-Bridging-Header.h */,
 				1336E7762BB722BF0000BBFD /* PrefixHeader.pch */,
@@ -450,7 +454,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"/Users/zhuang52/Desktop/opencv_4.6/opencv-build/opencv2.xcframework",
+					"/Users/zhuang52/opencv-build/opencv2.xcframework",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "-11.test";
@@ -484,7 +488,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"/Users/zhuang52/Desktop/opencv_4.6/opencv-build/opencv2.xcframework",
+					"/Users/zhuang52/opencv-build/opencv2.xcframework",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "-11.test";

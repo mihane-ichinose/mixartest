@@ -9,31 +9,23 @@ import SwiftUI
 import RealityKit
 
 struct ContentView : View {
+    func imageProcess() -> some View {
+        print("\(OpenCVWrapper.getOpenCVVersion())")
+        let rgbaIn = UIImage(named: "drinkingglasses")!
+        let grayOut = OpenCVWrapper.grayscaleImg(rgbaIn)
+        return Image(uiImage: grayOut)
+    }
     var body: some View {
         //        ARViewContainer().edgesIgnoringSafeArea(.all)
-//        print("\(OpenCVWrapper.getOpenCVVersion())")
+        imageProcess()
 
-        CVImage(grayOut)
     }
 }
-struct CVImage: UIViewControllerRepresentable {
-    
-    func makeUIView(context: Context) -> UIImageView {
-        print("\(OpenCVWrapper.getOpenCVVersion())")
-        let rgbaIn = UIImage(named: "drinkingglasses.jpg")!
-        let gray = OpenCVWrapper.grayscaleImg(rgbaIn)
-        
-        let imageview = UIImageView(image: gray)
-        return imageview
-    }
-    func updateUIView(_ uiView: ARView, context: Context) {}
-}
+
 struct ARViewContainer: UIViewRepresentable {
     
     func makeUIView(context: Context) -> ARView {
-        print("\(OpenCVWrapper.getOpenCVVersion())")
-        let rgbaIn = UIImage(named: "drinkingglasses.jpg")!
-        let grayOut = OpenCVWrapper.grayscaleImg(rgbaIn)
+
         let arView = ARView(frame: .zero)
 
         // Create a cube model
@@ -57,7 +49,6 @@ struct ARViewContainer: UIViewRepresentable {
 }
 
 #Preview {
-//    print("\(OpenCVWrapper.getOpenCVVersion())")
     ContentView()
     
 }
