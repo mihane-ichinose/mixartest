@@ -21,7 +21,7 @@ class VisionObjectRecognitionViewController: ViewController {
         // Setup Vision parts
         let error: NSError! = nil
         
-        guard let modelURL = Bundle.main.url(forResource: "YOLOv3", withExtension: "mlmodelc") else {
+        guard let modelURL = Bundle.main.url(forResource: "measure_vol", withExtension: "mlmodelc") else {
             return NSError(domain: "VisionObjectRecognitionViewController", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model file is missing"])
         }
         do {
@@ -46,15 +46,58 @@ class VisionObjectRecognitionViewController: ViewController {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         detectionOverlay.sublayers = nil // remove all the old recognized objects
+        for observation in results where observation is VNCoreMLFeatureValueObservation{
+            guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
+                continue
+            }
+            var value = ""
+            //print(objectObservation.featureValue)
+            let featureValue = objectObservation.featureValue
+                if let multiArray = featureValue.multiArrayValue {
+                        for row in 0..<multiArray.shape[0].intValue {
+                            for col in 0..<multiArray.shape[1].intValue {
+                                value = multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].stringValue
+                                print(value, terminator: " ") // Print each element separated by a space
+                            }
+                            print() // Move to the next line after printing each row
+                        }
+                    } else {
+                        print("Feature value is not a multi-array")
+                    }
+            let textLayer = CATextLayer()
+            textLayer.name = "Object Label"
+//            let formattedString = NSMutableAttributedString(string: String(format: "\(identifier)\nConfidence:  %.2f", confidence))
+            let largeFont = UIFont(name: "Helvetica", size: 80.0)!
+//            formattedString.addAttributes([NSAttributedString.Key.font: largeFont], range: NSRange(location: 0, length: identifier.count))
+            textLayer.string = value
+            textLayer.foregroundColor = UIColor.black.cgColor
+            textLayer.fontSize = 40
+            textLayer.frame = CGRect(x: 0, y: 100, width: 100, height: 50)
+            //textLayer.position = CGPoint(x: 500, y: 500)
+            textLayer.shadowOpacity = 0.7
+            textLayer.shadowOffset = CGSize(width: 10, height: 10)
+            //textLayer.foregroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [100.0, 100.0, 0.0, 1.0])
+            textLayer.contentsScale = 2.0 // retina rendering
+            // rotate the layer into screen orientation and scale and mirror
+            textLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
+            	
+            // Create a background layer
+            let backgroundLayer = CALayer()
+            backgroundLayer.backgroundColor = UIColor.yellow.withAlphaComponent(0.5).cgColor // Set background color
+            backgroundLayer.frame = CGRect(x: 650, y: 200, width: 100, height: 350)
+            
+            detectionOverlay.addSublayer(backgroundLayer)
+            backgroundLayer.addSublayer(textLayer)
+        }
         for observation in results where observation is VNRecognizedObjectObservation {
             guard let objectObservation = observation as? VNRecognizedObjectObservation else {
                 continue
             }
             // Select only the label with the highest confidence.
             let topLabelObservation = objectObservation.labels[0]
-            if topLabelObservation.identifier != "bottle" {
-                continue
-            }
+//            if topLabelObservation.identifier != "bottle" {
+//                continue
+//            }
             let objectBounds = VNImageRectForNormalizedRect(objectObservation.boundingBox, Int(bufferSize.width), Int(bufferSize.height))
             
             let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)

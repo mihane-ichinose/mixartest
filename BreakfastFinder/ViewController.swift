@@ -8,7 +8,7 @@ Contains the view controller for the Breakfast Finder.
 import UIKit
 import AVFoundation
 import Vision
-
+import RealityKit
 
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
@@ -28,7 +28,21 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupAVCapture()
+        // Create a button
+        let button = UIButton(type: .system)
+        button.setTitle("Start Measure!", for: .normal)
+        button.addTarget(self, action: #selector(setupAVCapture), for: .touchUpInside)
+        
+        // Add the button to the view
+        view.addSubview(button)
+        
+        // Set button's constraints (optional, you can adjust this based on your UI layout)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            button.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+//        setupAVCapture()
     }
     
     override func didReceiveMemoryWarning() {
@@ -36,9 +50,35 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         // Dispose of any resources that can be recreated.
     }
     
-    func setupAVCapture() {
-        var deviceInput: AVCaptureDeviceInput!
+    @objc func setupAVCapture() {
+//        let inputFolderUrl = URL(fileURLWithPath: "/Users/zhuang52/Downloads/RecognizingObjectsInLiveCapture/images", isDirectory: true)
+//        let url = URL(fileURLWithPath: "./MyObject.usdz")
+//        var maybeSession: PhotogrammetrySession? = nil
+//        do {
+//            maybeSession = try PhotogrammetrySession(input: inputFolderUrl)
+//        } catch {
+//            print("Error info: \(error)")
+//            print("An error has occured")
+//        }
+//        
+//        guard let dsession = maybeSession else {
+//            print("2 erorr has occured")
+//            return
+//        }
+//        
+//        do {
+//            var request = PhotogrammetrySession.Request.modelFile(url: url)
+//            try dsession.process(requests: [ request ])
+//            // Enter the infinite loop dispatcher used to process asynchronous
+//            // blocks on the main queue. You explicitly exit above to stop the loop.
+//            RunLoop.main.run()
+//        } catch {
+//            print("Error info: \(error)")
+//            print("Something happened running session")
+//            return
+//        }
         
+        var deviceInput: AVCaptureDeviceInput!
         // Select a video device, make an input
         let videoDevice = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back).devices.first
         do {
@@ -49,7 +89,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
         
         session.beginConfiguration()
-        session.sessionPreset = .vga640x480 // Model image size is smaller.
+        session.sessionPreset = .iFrame960x540 // Model image size is smaller.
         
         // Add a video input
         guard session.canAddInput(deviceInput) else {
