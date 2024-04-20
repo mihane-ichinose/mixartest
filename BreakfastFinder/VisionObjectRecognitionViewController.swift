@@ -11,32 +11,41 @@ import Vision
 
 class VisionObjectRecognitionViewController: ViewController {
     
+    var sentences = [""]
+    var currentSentenceIndex = 0
+    let sentenceLayer = CATextLayer()
+    
     private var detectionOverlay: CALayer! = nil
     
     // Vision parts
     private var requests = [VNRequest]()
     
     @discardableResult
-    func setupVision() -> NSError? {
+    func setupVision(mode: String) -> NSError? {
         // Setup Vision parts
         let error: NSError! = nil
-        
-        guard let modelURL = Bundle.main.url(forResource: "measure_vol", withExtension: "mlmodelc") else {
-            return NSError(domain: "VisionObjectRecognitionViewController", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model file is missing"])
-        }
-        do {
-            let visionModel = try VNCoreMLModel(for: MLModel(contentsOf: modelURL))
-            let objectRecognition = VNCoreMLRequest(model: visionModel, completionHandler: { (request, error) in
-                DispatchQueue.main.async(execute: {
-                    // perform all the UI updates on the main queue
-                    if let results = request.results {
-                        self.drawVisionRequestResults(results)
-                    }
+        if (mode == "measure") {
+            print("measure")
+            guard let modelURL = Bundle.main.url(forResource: "measure_vol", withExtension: "mlmodelc") else {
+                return NSError(domain: "VisionObjectRecognitionViewController", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model file is missing"])
+            }
+            do {
+                let visionModel = try VNCoreMLModel(for: MLModel(contentsOf: modelURL))
+                let objectRecognition = VNCoreMLRequest(model: visionModel, completionHandler: { (request, error) in
+                    DispatchQueue.main.async(execute: {
+                        // perform all the UI updates on the main queue
+                        if let results = request.results {
+                            self.drawVisionRequestResults(results)
+                        }
+                    })
                 })
-            })
-            self.requests = [objectRecognition]
-        } catch let error as NSError {
-            print("Model loading went wrong: \(error)")
+                self.requests = [objectRecognition]
+            } catch let error as NSError {
+                print("Model loading went wrong: \(error)")
+            }
+        } else{
+            print("Recipe")
+            self.drawRecipe(recipe: mode)
         }
         
         return error
@@ -56,8 +65,8 @@ class VisionObjectRecognitionViewController: ViewController {
                 if let multiArray = featureValue.multiArrayValue {
                         for row in 0..<multiArray.shape[0].intValue {
                             for col in 0..<multiArray.shape[1].intValue {
-                                value = multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].stringValue
-                                print(value, terminator: " ") // Print each element separated by a space
+                                value = String(Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue))
+                                print(value+"ml", terminator: " ") // Print each element separated by a space
                             }
                             print() // Move to the next line after printing each row
                         }
@@ -66,26 +75,31 @@ class VisionObjectRecognitionViewController: ViewController {
                     }
             let textLayer = CATextLayer()
             textLayer.name = "Object Label"
-//            let formattedString = NSMutableAttributedString(string: String(format: "\(identifier)\nConfidence:  %.2f", confidence))
-            let largeFont = UIFont(name: "Helvetica", size: 80.0)!
-//            formattedString.addAttributes([NSAttributedString.Key.font: largeFont], range: NSRange(location: 0, length: identifier.count))
-            textLayer.string = value
+            textLayer.string = value + " ml"
             textLayer.foregroundColor = UIColor.black.cgColor
             textLayer.fontSize = 40
             textLayer.frame = CGRect(x: 0, y: 100, width: 100, height: 50)
-            //textLayer.position = CGPoint(x: 500, y: 500)
-            textLayer.shadowOpacity = 0.7
-            textLayer.shadowOffset = CGSize(width: 10, height: 10)
-            //textLayer.foregroundColor = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(), components: [100.0, 100.0, 0.0, 1.0])
             textLayer.contentsScale = 2.0 // retina rendering
-            // rotate the layer into screen orientation and scale and mirror
             textLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
-            	
+            
             // Create a background layer
             let backgroundLayer = CALayer()
             backgroundLayer.backgroundColor = UIColor.yellow.withAlphaComponent(0.5).cgColor // Set background color
             backgroundLayer.frame = CGRect(x: 650, y: 200, width: 100, height: 350)
             
+            // 创建一个矩形层作为按钮
+           let buttonLayer = CALayer()
+           buttonLayer.backgroundColor = UIColor.blue.cgColor
+           buttonLayer.frame = CGRect(x: 20, y: 50, width: 100, height: 50)
+           buttonLayer.cornerRadius = 5 // 可选：为按钮添加圆角
+
+           // 添加点击手势
+           let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+           self.view.addGestureRecognizer(tapGesture)
+
+           // 将矩形层添加到视图的层级结构中
+           self.view.layer.addSublayer(buttonLayer)
+
             detectionOverlay.addSublayer(backgroundLayer)
             backgroundLayer.addSublayer(textLayer)
         }
@@ -114,6 +128,73 @@ class VisionObjectRecognitionViewController: ViewController {
         CATransaction.commit()
     }
     
+    func drawRecipe(recipe: String) {
+        CATransaction.begin()
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+        if (recipe == "Amaro Caldo") {
+            sentences = ["Add 3 oz of water", "Add 1.5 oz of amaro", "Stir well", "Add 1 slice of lemon"]
+        } else if (recipe == "Americano") {
+            sentences = ["Add 1.5 oz of campari", "Add 1.5 oz of sweet vermouth", "Add 3 oz of club soda", "Add ice and stir", "Add 1 slice of lemon"]
+        } else if (recipe == "1870's Sour") {
+            sentences = ["Add 2 oz of whiskey", "Add 1 oz of lemon juice", "Add 0.75 oz of maple syrup", "Add 0.25 oz of blueberry jam", "Add 0.5 oz of egg white", "Shake ingredients until foamy", "Shake with ice", "Strain into glass over ice", "Add 0.5 oz of red wine"]
+        }
+        
+        sentenceLayer.string = sentences[currentSentenceIndex]
+        sentenceLayer.foregroundColor = UIColor.black.cgColor
+        sentenceLayer.alignmentMode = .center
+        sentenceLayer.isWrapped = true
+        sentenceLayer.fontSize = 30
+        sentenceLayer.frame = CGRect(x: 20, y: 100, width: self.view.bounds.width - 40, height: 80)
+        
+        
+        let backgroundLayer = CALayer()
+        backgroundLayer.backgroundColor = UIColor.white.withAlphaComponent(0.5).cgColor // 白色背景，50% 透明度
+        backgroundLayer.frame = sentenceLayer.frame.insetBy(dx: -10, dy: -10) // 背景比文本层稍大一些
+        backgroundLayer.cornerRadius = 5 // 可选：为背景添加圆角
+
+        self.view.layer.addSublayer(backgroundLayer)
+        view.layer.addSublayer(sentenceLayer)
+
+        let prevButton = UIButton(type: .system)
+        prevButton.setTitle("Prev", for: .normal)
+        prevButton.frame = CGRect(x: 20, y: self.view.bounds.height - 100, width: 100, height: 50)
+        prevButton.addTarget(self, action: #selector(goToPreviousSentence), for: .touchUpInside)
+        view.addSubview(prevButton)
+
+        let nextButton = UIButton(type: .system)
+        nextButton.setTitle("Next", for: .normal)
+        nextButton.frame = CGRect(x: self.view.bounds.width - 120, y: self.view.bounds.height - 100, width: 100, height: 50)
+        nextButton.addTarget(self, action: #selector(goToNextSentence), for: .touchUpInside)
+        view.addSubview(nextButton)
+        
+        
+        self.updateLayerGeometry()
+        CATransaction.commit()
+    }
+    
+    @objc func goToPreviousSentence() {
+        if currentSentenceIndex > 0 {
+            currentSentenceIndex -= 1
+            sentenceLayer.string = sentences[currentSentenceIndex]
+        }
+    }
+
+    @objc func goToNextSentence() {
+        if currentSentenceIndex < sentences.count - 1 {
+            currentSentenceIndex += 1
+            sentenceLayer.string = sentences[currentSentenceIndex]
+        }
+    }
+    
+    @objc func handleTap(gesture: UITapGestureRecognizer) {
+        // 检查点击位置是否在按钮层的范围内
+        let point = gesture.location(in: self.view)
+        if self.view.layer.sublayers?.first(where: { $0.frame.contains(point) }) != nil {
+            // 如果是按钮层被点击，返回上一个页面
+            self.navigationController?.popToRootViewController(animated: true)
+        }
+    }
+    
     override func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
@@ -129,13 +210,13 @@ class VisionObjectRecognitionViewController: ViewController {
         }
     }
     
-    override func setupAVCapture() {
-        super.setupAVCapture()
+    override func setupAVCapture(mode: String) {
+        super.setupAVCapture(mode: mode)
         
         // setup Vision parts
         setupLayers()
         updateLayerGeometry()
-        setupVision()
+        setupVision(mode: mode)
         
         // start the capture
         startCaptureSession()

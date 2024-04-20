@@ -9,6 +9,7 @@ import UIKit
 import AVFoundation
 import Vision
 import RealityKit
+import SwiftUI
 
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
@@ -30,19 +31,65 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         super.viewDidLoad()
         // Create a button
         let button = UIButton(type: .system)
-        button.setTitle("Start Measure!", for: .normal)
-        button.addTarget(self, action: #selector(setupAVCapture), for: .touchUpInside)
+        button.setTitle("Start Measure", for: .normal)
+        button.addTarget(self, action: #selector(handleMeasureAVCapture(_:)), for: .touchUpInside)
+        //Create recipe button
+        let button_recipe = UIButton(type: .system)
+        button_recipe.setTitle("Recipe", for: .normal)
+        button_recipe.addTarget(self, action: #selector(setRecipeMenu), for: .touchUpInside)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 40)
+        button_recipe.titleLabel?.font = UIFont.systemFont(ofSize: 40)
         
         // Add the button to the view
         view.addSubview(button)
+        view.addSubview(button_recipe)
         
         // Set button's constraints (optional, you can adjust this based on your UI layout)
         button.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            button.centerYAnchor.constraint(equalTo: view.bottomAnchor, constant: -280)
         ])
+        
+        // Set button's constraints (optional, you can adjust this based on your UI layout)
+        button_recipe.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            button_recipe.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            button_recipe.centerYAnchor.constraint(equalTo: view.bottomAnchor, constant: -220)
+        ])
+        
+        // Add logo image view
+        let logoImageView = UIImageView(image: UIImage(named: "logo.png"))
+        logoImageView.contentMode = .scaleAspectFit
+        view.addSubview(logoImageView)
+        
+        // Set logo image view's constraints
+        logoImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            logoImageView.topAnchor.constraint(equalTo: view.topAnchor, constant: 100), // Adjust the constant as needed
+            logoImageView.widthAnchor.constraint(equalToConstant: 200), // Set width of logo image view
+            logoImageView.heightAnchor.constraint(equalToConstant: 200) // Set height of logo image view
+        ])
+        
+        if let navigationController = self.navigationController {
+            navigationController.interactivePopGestureRecognizer?.delegate = nil
+            navigationController.interactivePopGestureRecognizer?.isEnabled = true
+        }
+        
+        // check number of pages and show back button
+        if self.navigationController?.viewControllers.count ?? 0 > 1 {
+            self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backButtonTapped))
+        }
 //        setupAVCapture()
+    }
+    
+    @objc func backButtonTapped() {
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func handleMeasureAVCapture(_ sender: UIButton) {
+        setupAVCapture(mode: "measure")
     }
     
     override func didReceiveMemoryWarning() {
@@ -50,7 +97,39 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         // Dispose of any resources that can be recreated.
     }
     
-    @objc func setupAVCapture() {
+    @objc func setRecipeMenu() {
+        let alertController = UIAlertController(title: "Recipe Menu", message: nil, preferredStyle: .actionSheet)
+        
+        // Add recipe options
+        let recipes = ["Amaro Caldo", "Americano", "1870's Sour"]
+        for recipe in recipes {
+            let action = UIAlertAction(title: recipe, style: .default) { action in
+                // Handle selection of the recipe
+                print("Selected Recipe: \(recipe)")
+                // You can perform any action here, like navigating to a new page
+                // Navigate to RecipeDetailViewController
+                self.setupAVCapture(mode: recipe)
+//                recipeDetailVC.recipeName = recipe
+                //self?.navigationController?.pushViewController(recipeDetailVC, animated: true)
+            }
+            alertController.addAction(action)
+        }
+        
+        // Add cancel action
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        
+        // Present the alert controller
+        if let popoverController = alertController.popoverPresentationController {
+            // For iPad
+            popoverController.sourceView = view
+            popoverController.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+        }
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    @objc func setupAVCapture(mode: String) {
 //        let inputFolderUrl = URL(fileURLWithPath: "/Users/zhuang52/Downloads/RecognizingObjectsInLiveCapture/images", isDirectory: true)
 //        let url = URL(fileURLWithPath: "./MyObject.usdz")
 //        var maybeSession: PhotogrammetrySession? = nil

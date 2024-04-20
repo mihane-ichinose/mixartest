@@ -7,9 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		130DCD6C2BD43A05007443FC /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 130DCD6B2BD43A05007443FC /* logo.png */; };
 		13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13C048C22BD31A3100C910AE /* measure_vol.mlpackage */; };
-		13C048C52BD31A3800C910AE /* measure_vol_array.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */; };
-		FA4750CA20BF3F48003E19ED /* Breakfast Finder Logo.png in Resources */ = {isa = PBXBuildFile; fileRef = FA4750C920BF3F48003E19ED /* Breakfast Finder Logo.png */; };
 		FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB417F52099308400494E9C /* VisionObjectRecognitionViewController.swift */; };
 		FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD5009E1ED668B60074D713 /* AppDelegate.swift */; };
 		FAD500A11ED668B60074D713 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD500A01ED668B60074D713 /* ViewController.swift */; };
@@ -19,14 +18,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		130DCD6B2BD43A05007443FC /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		13C048C22BD31A3100C910AE /* measure_vol.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = measure_vol.mlpackage; sourceTree = SOURCE_ROOT; };
-		13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = measure_vol_array.mlpackage; sourceTree = SOURCE_ROOT; };
 		7984D3D3A63BDFC4A07FEF8F /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 		C2A2AB60C2A2AB2000000001 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E3CB966204CD821C6969C2A3 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
-		FA4750C920BF3F48003E19ED /* Breakfast Finder Logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Breakfast Finder Logo.png"; sourceTree = SOURCE_ROOT; };
 		FAB417F52099308400494E9C /* VisionObjectRecognitionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisionObjectRecognitionViewController.swift; sourceTree = "<group>"; };
-		FAD5009B1ED668B60074D713 /* BreakfastFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BreakfastFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAD5009B1ED668B60074D713 /* DrinkMixAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DrinkMixAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAD5009E1ED668B60074D713 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FAD500A01ED668B60074D713 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		FAD500A31ED668B60074D713 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -76,7 +74,7 @@
 		FAD5009C1ED668B60074D713 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				FAD5009B1ED668B60074D713 /* BreakfastFinder.app */,
+				FAD5009B1ED668B60074D713 /* DrinkMixAR.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,10 +88,9 @@
 				FAD500A21ED668B60074D713 /* Main.storyboard */,
 				FAD500A51ED668B60074D713 /* Assets.xcassets */,
 				FAD500A71ED668B60074D713 /* LaunchScreen.storyboard */,
-				FA4750C920BF3F48003E19ED /* Breakfast Finder Logo.png */,
 				FAD500AA1ED668B60074D713 /* Info.plist */,
 				13C048C22BD31A3100C910AE /* measure_vol.mlpackage */,
-				13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */,
+				130DCD6B2BD43A05007443FC /* logo.png */,
 			);
 			path = BreakfastFinder;
 			sourceTree = "<group>";
@@ -101,9 +98,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FAD5009A1ED668B60074D713 /* BreakfastFinder */ = {
+		FAD5009A1ED668B60074D713 /* DrinkMixAR */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FAD500AD1ED668B60074D713 /* Build configuration list for PBXNativeTarget "BreakfastFinder" */;
+			buildConfigurationList = FAD500AD1ED668B60074D713 /* Build configuration list for PBXNativeTarget "DrinkMixAR" */;
 			buildPhases = (
 				FAD500971ED668B60074D713 /* Sources */,
 				FAD500981ED668B60074D713 /* Frameworks */,
@@ -113,9 +110,9 @@
 			);
 			dependencies = (
 			);
-			name = BreakfastFinder;
+			name = DrinkMixAR;
 			productName = "VisionCamObjectRecognition-Swift";
-			productReference = FAD5009B1ED668B60074D713 /* BreakfastFinder.app */;
+			productReference = FAD5009B1ED668B60074D713 /* DrinkMixAR.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -135,7 +132,7 @@
 					};
 				};
 			};
-			buildConfigurationList = FAD500961ED668B60074D713 /* Build configuration list for PBXProject "BreakfastFinder" */;
+			buildConfigurationList = FAD500961ED668B60074D713 /* Build configuration list for PBXProject "DrinkMixAR" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -148,7 +145,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				FAD5009A1ED668B60074D713 /* BreakfastFinder */,
+				FAD5009A1ED668B60074D713 /* DrinkMixAR */,
 			);
 		};
 /* End PBXProject section */
@@ -158,7 +155,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FA4750CA20BF3F48003E19ED /* Breakfast Finder Logo.png in Resources */,
+				130DCD6C2BD43A05007443FC /* logo.png in Resources */,
 				FAD500A91ED668B60074D713 /* LaunchScreen.storyboard in Resources */,
 				FAD500A61ED668B60074D713 /* Assets.xcassets in Resources */,
 				FAD500A41ED668B60074D713 /* Main.storyboard in Resources */,
@@ -173,7 +170,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */,
-				13C048C52BD31A3800C910AE /* measure_vol_array.mlpackage in Sources */,
 				FAD500A11ED668B60074D713 /* ViewController.swift in Sources */,
 				13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */,
 				FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */,
@@ -324,10 +320,13 @@
 			baseConfigurationReference = 7984D3D3A63BDFC4A07FEF8F /* SampleCode.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7BUD98489K;
+				DEVELOPMENT_TEAM = 7JZN89TNPZ;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.BreakfastFinder${SAMPLE_CODE_DISAMBIGUATOR}";
@@ -343,10 +342,13 @@
 			baseConfigurationReference = 7984D3D3A63BDFC4A07FEF8F /* SampleCode.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7BUD98489K;
+				DEVELOPMENT_TEAM = 7JZN89TNPZ;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.BreakfastFinder${SAMPLE_CODE_DISAMBIGUATOR}";
@@ -360,7 +362,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		FAD500961ED668B60074D713 /* Build configuration list for PBXProject "BreakfastFinder" */ = {
+		FAD500961ED668B60074D713 /* Build configuration list for PBXProject "DrinkMixAR" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FAD500AB1ED668B60074D713 /* Debug */,
@@ -369,7 +371,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FAD500AD1ED668B60074D713 /* Build configuration list for PBXNativeTarget "BreakfastFinder" */ = {
+		FAD500AD1ED668B60074D713 /* Build configuration list for PBXNativeTarget "DrinkMixAR" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FAD500AE1ED668B60074D713 /* Debug */,
