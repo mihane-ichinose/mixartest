@@ -7,11 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		13068A012BCDCC960096317E /* YOLOv3.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 13068A002BCDCC960096317E /* YOLOv3.mlmodel */; };
-		13068A032BCDCD890096317E /* YOLOv3Int8LUT.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 13068A022BCDCD890096317E /* YOLOv3Int8LUT.mlmodel */; };
-		13658C582BBF4051000054F3 /* YOLOv3Int8LUT.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 13658C572BBF4051000054F3 /* YOLOv3Int8LUT.mlmodel */; };
-		13658C5A2BBF4971000054F3 /* YOLOv3.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 13658C592BBF4971000054F3 /* YOLOv3.mlmodel */; };
-		13E70E1C2BD19A1D002BE59E /* measure_vol.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13E70E1B2BD19A1D002BE59E /* measure_vol.mlpackage */; };
+		13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13C048C22BD31A3100C910AE /* measure_vol.mlpackage */; };
+		13C048C52BD31A3800C910AE /* measure_vol_array.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */; };
 		FA4750CA20BF3F48003E19ED /* Breakfast Finder Logo.png in Resources */ = {isa = PBXBuildFile; fileRef = FA4750C920BF3F48003E19ED /* Breakfast Finder Logo.png */; };
 		FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB417F52099308400494E9C /* VisionObjectRecognitionViewController.swift */; };
 		FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD5009E1ED668B60074D713 /* AppDelegate.swift */; };
@@ -22,15 +19,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13068A002BCDCC960096317E /* YOLOv3.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3.mlmodel; sourceTree = "<group>"; };
-		13068A022BCDCD890096317E /* YOLOv3Int8LUT.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3Int8LUT.mlmodel; sourceTree = "<group>"; };
-		13204D932BCF2C5300BEE230 /* IMG_4274.HEIC */ = {isa = PBXFileReference; lastKnownFileType = file; path = IMG_4274.HEIC; sourceTree = "<group>"; };
-		13204D942BCF2C5300BEE230 /* IMG_4275.HEIC */ = {isa = PBXFileReference; lastKnownFileType = file; path = IMG_4275.HEIC; sourceTree = "<group>"; };
-		13204D952BCF2C5300BEE230 /* IMG_4276.HEIC */ = {isa = PBXFileReference; lastKnownFileType = file; path = IMG_4276.HEIC; sourceTree = "<group>"; };
-		13204D962BCF2C5300BEE230 /* IMG_4277.HEIC */ = {isa = PBXFileReference; lastKnownFileType = file; path = IMG_4277.HEIC; sourceTree = "<group>"; };
-		13658C572BBF4051000054F3 /* YOLOv3Int8LUT.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3Int8LUT.mlmodel; sourceTree = "<group>"; };
-		13658C592BBF4971000054F3 /* YOLOv3.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3.mlmodel; sourceTree = "<group>"; };
-		13E70E1B2BD19A1D002BE59E /* measure_vol.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; name = measure_vol.mlpackage; path = ../../measure_vol.mlpackage; sourceTree = "<group>"; };
+		13C048C22BD31A3100C910AE /* measure_vol.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = measure_vol.mlpackage; sourceTree = SOURCE_ROOT; };
+		13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = measure_vol_array.mlpackage; sourceTree = SOURCE_ROOT; };
 		7984D3D3A63BDFC4A07FEF8F /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 		C2A2AB60C2A2AB2000000001 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		E3CB966204CD821C6969C2A3 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
@@ -56,17 +46,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13204D922BCF2C5300BEE230 /* images */ = {
-			isa = PBXGroup;
-			children = (
-				13204D942BCF2C5300BEE230 /* IMG_4275.HEIC */,
-				13204D952BCF2C5300BEE230 /* IMG_4276.HEIC */,
-				13204D932BCF2C5300BEE230 /* IMG_4274.HEIC */,
-				13204D962BCF2C5300BEE230 /* IMG_4277.HEIC */,
-			);
-			path = images;
-			sourceTree = "<group>";
-		};
 		6699E7B5AD92619B7FE916AC /* LICENSE */ = {
 			isa = PBXGroup;
 			children = (
@@ -86,7 +65,6 @@
 		FAD500921ED668B60074D713 = {
 			isa = PBXGroup;
 			children = (
-				13204D922BCF2C5300BEE230 /* images */,
 				C2A2AB60C2A2AB2000000001 /* README.md */,
 				FAD5009D1ED668B60074D713 /* BreakfastFinder */,
 				FAD5009C1ED668B60074D713 /* Products */,
@@ -112,13 +90,10 @@
 				FAD500A21ED668B60074D713 /* Main.storyboard */,
 				FAD500A51ED668B60074D713 /* Assets.xcassets */,
 				FAD500A71ED668B60074D713 /* LaunchScreen.storyboard */,
-				13658C572BBF4051000054F3 /* YOLOv3Int8LUT.mlmodel */,
-				13068A022BCDCD890096317E /* YOLOv3Int8LUT.mlmodel */,
-				13658C592BBF4971000054F3 /* YOLOv3.mlmodel */,
-				13068A002BCDCC960096317E /* YOLOv3.mlmodel */,
-				13E70E1B2BD19A1D002BE59E /* measure_vol.mlpackage */,
 				FA4750C920BF3F48003E19ED /* Breakfast Finder Logo.png */,
 				FAD500AA1ED668B60074D713 /* Info.plist */,
+				13C048C22BD31A3100C910AE /* measure_vol.mlpackage */,
+				13C048C42BD31A3800C910AE /* measure_vol_array.mlpackage */,
 			);
 			path = BreakfastFinder;
 			sourceTree = "<group>";
@@ -197,13 +172,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13658C5A2BBF4971000054F3 /* YOLOv3.mlmodel in Sources */,
-				13068A032BCDCD890096317E /* YOLOv3Int8LUT.mlmodel in Sources */,
-				13E70E1C2BD19A1D002BE59E /* measure_vol.mlpackage in Sources */,
 				FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */,
-				13068A012BCDCC960096317E /* YOLOv3.mlmodel in Sources */,
-				13658C582BBF4051000054F3 /* YOLOv3Int8LUT.mlmodel in Sources */,
+				13C048C52BD31A3800C910AE /* measure_vol_array.mlpackage in Sources */,
 				FAD500A11ED668B60074D713 /* ViewController.swift in Sources */,
+				13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */,
 				FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -354,7 +326,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -373,7 +345,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
