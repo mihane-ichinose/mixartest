@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		130DCD6C2BD43A05007443FC /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 130DCD6B2BD43A05007443FC /* logo.png */; };
+		13BBF7492BD5A6D800198FEC /* yolov8n.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13BBF7482BD5A6D800198FEC /* yolov8n.mlpackage */; };
+		13BBF74B2BD5A78A00198FEC /* YOLOv3.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 13BBF74A2BD5A78A00198FEC /* YOLOv3.mlmodel */; };
+		13BBF74D2BD5B58C00198FEC /* yolov8n-seg.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13BBF74C2BD5B58C00198FEC /* yolov8n-seg.mlpackage */; };
 		13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 13C048C22BD31A3100C910AE /* measure_vol.mlpackage */; };
 		FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB417F52099308400494E9C /* VisionObjectRecognitionViewController.swift */; };
 		FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAD5009E1ED668B60074D713 /* AppDelegate.swift */; };
@@ -19,6 +22,9 @@
 
 /* Begin PBXFileReference section */
 		130DCD6B2BD43A05007443FC /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		13BBF7482BD5A6D800198FEC /* yolov8n.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = yolov8n.mlpackage; sourceTree = "<group>"; };
+		13BBF74A2BD5A78A00198FEC /* YOLOv3.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = YOLOv3.mlmodel; sourceTree = "<group>"; };
+		13BBF74C2BD5B58C00198FEC /* yolov8n-seg.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "yolov8n-seg.mlpackage"; sourceTree = "<group>"; };
 		13C048C22BD31A3100C910AE /* measure_vol.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = measure_vol.mlpackage; sourceTree = SOURCE_ROOT; };
 		7984D3D3A63BDFC4A07FEF8F /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 		C2A2AB60C2A2AB2000000001 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -90,6 +96,9 @@
 				FAD500A71ED668B60074D713 /* LaunchScreen.storyboard */,
 				FAD500AA1ED668B60074D713 /* Info.plist */,
 				13C048C22BD31A3100C910AE /* measure_vol.mlpackage */,
+				13BBF74C2BD5B58C00198FEC /* yolov8n-seg.mlpackage */,
+				13BBF7482BD5A6D800198FEC /* yolov8n.mlpackage */,
+				13BBF74A2BD5A78A00198FEC /* YOLOv3.mlmodel */,
 				130DCD6B2BD43A05007443FC /* logo.png */,
 			);
 			path = BreakfastFinder;
@@ -169,10 +178,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13BBF74B2BD5A78A00198FEC /* YOLOv3.mlmodel in Sources */,
 				FAB417F62099308400494E9C /* VisionObjectRecognitionViewController.swift in Sources */,
+				13BBF7492BD5A6D800198FEC /* yolov8n.mlpackage in Sources */,
 				FAD500A11ED668B60074D713 /* ViewController.swift in Sources */,
 				13C048C32BD31A3100C910AE /* measure_vol.mlpackage in Sources */,
 				FAD5009F1ED668B60074D713 /* AppDelegate.swift in Sources */,
+				13BBF74D2BD5B58C00198FEC /* yolov8n-seg.mlpackage in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,7 +335,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
@@ -345,7 +357,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";

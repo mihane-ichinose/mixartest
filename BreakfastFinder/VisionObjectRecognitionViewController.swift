@@ -10,7 +10,10 @@ import AVFoundation
 import Vision
 
 class VisionObjectRecognitionViewController: ViewController {
-    
+    var maxProbValue:String = ""
+    var bestMaskIdx = 0
+    let imageViewWidth = CGFloat(678/2)
+    let imageViewHeight = CGFloat(452/2)
     var sentences = [""]
     var currentSentenceIndex = 0
     let sentenceLayer = CATextLayer()
@@ -19,6 +22,7 @@ class VisionObjectRecognitionViewController: ViewController {
     
     // Vision parts
     private var requests = [VNRequest]()
+    private var requestsMeasure = [VNRequest]()
     
     @discardableResult
     func setupVision(mode: String) -> NSError? {
@@ -26,11 +30,15 @@ class VisionObjectRecognitionViewController: ViewController {
         let error: NSError! = nil
         if (mode == "measure") {
             print("measure")
-            guard let modelURL = Bundle.main.url(forResource: "measure_vol", withExtension: "mlmodelc") else {
+            guard let modelURL = Bundle.main.url(forResource: "yolov8n-seg", withExtension: "mlmodelc") else {
                 return NSError(domain: "VisionObjectRecognitionViewController", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model file is missing"])
+            }
+            guard let modelURLMeasure = Bundle.main.url(forResource: "measure_vol", withExtension: "mlmodelc") else {
+                return NSError(domain: "VisionObjectRecognitionViewController1", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model file is missing"])
             }
             do {
                 let visionModel = try VNCoreMLModel(for: MLModel(contentsOf: modelURL))
+                let visionModelMeasure = try VNCoreMLModel(for: MLModel(contentsOf: modelURLMeasure))
                 let objectRecognition = VNCoreMLRequest(model: visionModel, completionHandler: { (request, error) in
                     DispatchQueue.main.async(execute: {
                         // perform all the UI updates on the main queue
@@ -39,7 +47,17 @@ class VisionObjectRecognitionViewController: ViewController {
                         }
                     })
                 })
+                let objectRecognitionMeasure = VNCoreMLRequest(model: visionModelMeasure, completionHandler: { (request, error) in
+                    DispatchQueue.main.async(execute: {
+                        // perform all the UI updates on the main queue
+                        if let results = request.results {
+                            self.drawVisionRequestResultsMeasure(results)
+                            
+                        }
+                    })
+                })
                 self.requests = [objectRecognition]
+                self.requestsMeasure = [objectRecognitionMeasure]
             } catch let error as NSError {
                 print("Model loading went wrong: \(error)")
             }
@@ -50,11 +68,12 @@ class VisionObjectRecognitionViewController: ViewController {
         
         return error
     }
-    
-    func drawVisionRequestResults(_ results: [Any]) {
+
+    func drawVisionRequestResultsMeasure(_ results: [Any]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         detectionOverlay.sublayers = nil // remove all the old recognized objects
+        print(results)
         for observation in results where observation is VNCoreMLFeatureValueObservation{
             guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
                 continue
@@ -62,17 +81,17 @@ class VisionObjectRecognitionViewController: ViewController {
             var value = ""
             //print(objectObservation.featureValue)
             let featureValue = objectObservation.featureValue
-                if let multiArray = featureValue.multiArrayValue {
-                        for row in 0..<multiArray.shape[0].intValue {
-                            for col in 0..<multiArray.shape[1].intValue {
-                                value = String(Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue))
-                                print(value+"ml", terminator: " ") // Print each element separated by a space
-                            }
-                            print() // Move to the next line after printing each row
-                        }
-                    } else {
-                        print("Feature value is not a multi-array")
+            if let multiArray = featureValue.multiArrayValue {
+                for row in 0..<multiArray.shape[0].intValue {
+                    for col in 0..<multiArray.shape[1].intValue {
+                        value = String(Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue))
+                        print(value+"ml", terminator: " ") // Print each element separated by a space
                     }
+                    print() // Move to the next line after printing each row
+                }
+            } else {
+                print("Feature value is not a multi-array")
+            }
             let textLayer = CATextLayer()
             textLayer.name = "Object Label"
             textLayer.string = value + " ml"
@@ -88,21 +107,248 @@ class VisionObjectRecognitionViewController: ViewController {
             backgroundLayer.frame = CGRect(x: 650, y: 200, width: 100, height: 350)
             
             // 创建一个矩形层作为按钮
-           let buttonLayer = CALayer()
-           buttonLayer.backgroundColor = UIColor.blue.cgColor
-           buttonLayer.frame = CGRect(x: 20, y: 50, width: 100, height: 50)
-           buttonLayer.cornerRadius = 5 // 可选：为按钮添加圆角
-
-           // 添加点击手势
-           let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-           self.view.addGestureRecognizer(tapGesture)
-
-           // 将矩形层添加到视图的层级结构中
-           self.view.layer.addSublayer(buttonLayer)
-
+            let buttonLayer = CALayer()
+            buttonLayer.backgroundColor = UIColor.blue.cgColor
+            buttonLayer.frame = CGRect(x: 20, y: 50, width: 100, height: 50)
+            buttonLayer.cornerRadius = 5 // 可选：为按钮添加圆角
+            
+            // 添加点击手势
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+            self.view.addGestureRecognizer(tapGesture)
+            
+            // 将矩形层添加到视图的层级结构中
+            self.view.layer.addSublayer(buttonLayer)
+            
             detectionOverlay.addSublayer(backgroundLayer)
             backgroundLayer.addSublayer(textLayer)
+
         }
+        
+        self.updateLayerGeometry()
+        CATransaction.commit()
+    }
+    
+    func getBoundingBox(feature: MLMultiArray)->(CGRect,Float){
+        var boundingBox = CGRect(x: 0,y: 0,width: 10,height: 10)
+        
+        var probMaxIdx = 0
+        var maxProb : Float = 0
+        var box_x : Float = 0
+        var box_y : Float = 0
+        var box_width : Float = 0
+        var box_height : Float = 0
+        print(feature.shape[2].intValue-1)
+        for j in 0..<feature.shape[2].intValue-1
+        {
+            //cup 41 + 4
+            let key = [0,45,j] as [NSNumber]
+            let nextKey = [0,45,j+1] as [NSNumber]
+            if(feature[key].floatValue < feature[nextKey].floatValue){
+                if(maxProb < feature[nextKey].floatValue){
+                    probMaxIdx = j+1
+                    let xKey = [0,0,probMaxIdx] as [NSNumber]
+                    let yKey = [0,1,probMaxIdx] as [NSNumber]
+                    let widthKey = [0,2,probMaxIdx] as [NSNumber]
+                    let heightKey = [0,3,probMaxIdx] as [NSNumber]
+                    maxProb = feature[nextKey].floatValue
+                    box_width = feature[widthKey].floatValue
+                    box_height = feature[heightKey].floatValue
+                    
+                    box_x = feature[xKey].floatValue - (box_width/2)
+                    box_y = feature[yKey].floatValue - (box_height/2)
+                }
+            }
+        }
+//        print(feature)
+//        for maskPrbIdx in 0..<feature.shape[1].intValue-1{
+//            let key = [0,maskPrbIdx,0] as [NSNumber]
+//            print(feature[key])
+//        }
+        self.maxProbValue = "\(maxProb)"
+        boundingBox = CGRect(x: CGFloat(box_x)/640
+                             ,y: CGFloat(box_y)/640
+                             ,width: CGFloat(box_width)/640
+                             ,height: CGFloat(box_height)/640)//normalize
+        var maxMaskProb : Float = 0
+        var maxMaskIdx = 0
+        for maskPrbIdx in 84..<feature.shape[1].intValue-1{
+            let key = [0,maskPrbIdx,probMaxIdx] as [NSNumber]
+            let nextKey = [0,maskPrbIdx+1,probMaxIdx] as [NSNumber]
+            if(feature[key].floatValue < feature[nextKey].floatValue){
+                if(maxMaskProb < feature[nextKey].floatValue){
+                    maxMaskIdx = maskPrbIdx+1
+                    maxMaskProb = feature[nextKey].floatValue
+                }
+            }
+            bestMaskIdx = maxMaskIdx-84
+            print("bestId: %d", bestMaskIdx)
+            print("\(maskPrbIdx-5) Best mask probablity is \(maxMaskIdx-5) with value \(maxMaskProb)")
+        }
+        print("maxProb",maxProb)
+        print("Bounding box from classifier \(boundingBox)")
+        return (boundingBox, maxProb)
+    }
+    
+    fileprivate func DrawMask(_ boundingBox: CGRect, masks: MLMultiArray) {
+//        let testImage = UIImage(contentsOfFile: Bundle.main.path(forResource: "tomcruise", ofType: "jpeg")!)!
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: imageViewWidth, height: imageViewHeight))
+        
+        let scaledX : CGFloat = (boundingBox.minX/650)*imageViewWidth
+        let scaledY : CGFloat = (boundingBox.minY/650)*imageViewHeight
+        let scaledWidth : CGFloat = (boundingBox.width/650)*imageViewWidth
+        let scaledHeight : CGFloat = (boundingBox.height/650)*imageViewHeight
+        
+        let rectangle = CGRect(x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight)
+        print("scaled rectangle \(rectangle)")
+        
+        
+        let maskProbThreshold : Float = 0.5
+        let maskFill : Float = 1.0
+        //draw the mask
+        var maskProbalities : [[Float]] = [] //this will contains 160x160 mask pixel probablities
+        var maskProbYAxis : [Float] = []
+        print("Actual Image bounds \(rectangle)")
+        //get the bounds for mask to match the bounds
+        let mask_x_min = (rectangle.minX/imageViewWidth)*160
+        let mask_x_max = (rectangle.maxX/imageViewWidth)*160
+        
+        let mask_y_min = (rectangle.minY/imageViewHeight)*160
+        let mask_y_max = (rectangle.maxY/imageViewHeight)*160
+        
+        for y in 0..<masks.shape[2].intValue{
+            maskProbYAxis.removeAll()
+            for x in 0..<masks.shape[3].intValue{
+                let pointKey = [0,bestMaskIdx,y,x] as [NSNumber]
+                if(sigmoid(z: masks[pointKey].floatValue) < maskProbThreshold
+                   && x >=  Int(mask_x_min) && x <= Int(mask_x_max)
+                && y >= Int(mask_y_min) && y <= Int(mask_y_max)){
+                    maskProbYAxis.append(1.0)
+                }
+                else{
+                    maskProbYAxis.append(0.0)
+                }
+            }
+            maskProbalities.append(maskProbYAxis)
+        }
+        
+        let mask = renderer.image(){ context in
+            
+            context.cgContext.setLineWidth(1)
+            for y in 0..<maskProbalities.count {
+                for x in 0..<maskProbalities[y].count{
+                    
+                    let xFactor = Float(imageViewWidth)/160
+                    let yFactor = Float(imageViewHeight)/160
+                    let maskScaled_X = Double(x) * Double(xFactor)
+                    let maskScaled_Y = Double(y) * Double(yFactor)
+                    
+                    if(maskProbalities[y][x] == 1.0)
+                    {
+                        context.cgContext.setStrokeColor(UIColor.red.withAlphaComponent(0.2).cgColor)
+                        context.cgContext.addRect(CGRect(x: maskScaled_X, y:maskScaled_Y , width: 1, height: 1))
+                        context.cgContext.drawPath(using: .stroke)
+                    }
+                }
+            }
+        }
+        
+//        let imageWithBox = renderer.image(){ context in
+//            testImage.draw(in: CGRect(x: 0, y: 0, width: imageViewWidth, height: imageViewHeight))
+//            //context.cgContext.draw(testImage.cgImage!, in: )
+//            context.cgContext.setShouldAntialias(true)
+//            context.cgContext.setStrokeColor(UIColor.red.cgColor)
+//            context.cgContext.setLineWidth(2)
+//            context.cgContext.addRect(rectangle)
+//            context.cgContext.drawPath(using: .stroke)
+//            mask.draw(in: CGRect(x: 0, y: 0, width: imageViewWidth, height: imageViewHeight))
+//        }
+         
+//        self.testImageSrc = imageWithBox
+    }
+    
+    private func sigmoid(z:Float) -> Float{
+        return 1.0/(1.0+exp(z))
+    }
+    
+    func drawVisionRequestResults(_ results: [Any]) {
+        CATransaction.begin()
+        CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
+//        detectionOverlay.sublayers = nil // remove all the old recognized objects
+
+        let result_0 = results[0] as! VNCoreMLFeatureValueObservation
+        let result_1 = results[1] as! VNCoreMLFeatureValueObservation
+        print(result_0.featureName)
+        print(result_1.featureName)
+        
+        let boundingBox_result = getBoundingBox(feature:result_1.featureValue.multiArrayValue!)
+        let boundingBox = boundingBox_result.0
+        let confidence = boundingBox_result.1
+        print(confidence)
+        if confidence > 0.03 {
+            let objectBounds = VNImageRectForNormalizedRect(boundingBox, Int(bufferSize.width), Int(bufferSize.height))
+
+            let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+            
+            //                let textLayer = self.createTextSubLayerInBounds(objectBounds,
+            //                                                                identifier: topLabelObservation.identifier,
+            //                                                                confidence: topLabelObservation.confidence)
+            //                shapeLayer.addSublayer(textLayer)
+            detectionOverlay.addSublayer(shapeLayer)
+    //        DrawMask(boundingBox,masks: result_1.featureValue.multiArrayValue! )
+        }
+
+//        for observation in results where observation is VNCoreMLFeatureValueObservation{
+//            guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
+//                continue
+//            }
+//            print(objectObservation)
+//            var maxProb: Float = 0.0
+//            var probMaxIdx: Int = 0
+//            var box_width: Float = 0.0
+//            var box_height: Float = 0.0
+//            var box_x: Float = 0.0
+//            var box_y: Float = 0.0
+//            var boundingBox: CGRect? = nil
+//            if objectObservation.featureName == "var_1053" {
+//                let feature = objectObservation.featureValue.multiArrayValue
+//                if let feature = feature {
+//                    for j in 0..<(feature.shape[2].intValue - 2) {
+//                        let key = [0, 4, j] as [NSNumber]
+//                        let nextKey = [0, 4, j + 1] as [NSNumber]
+//                        
+//                        if feature[key].floatValue < feature[nextKey].floatValue {
+//                            if maxProb < feature[nextKey].floatValue {
+//                                probMaxIdx = j + 1
+//                                let xKey = [0, 0, probMaxIdx] as [NSNumber]
+//                                let yKey = [0, 1, probMaxIdx] as [NSNumber]
+//                                let widthKey = [0, 2, probMaxIdx] as [NSNumber]
+//                                let heightKey = [0, 3, probMaxIdx] as [NSNumber]
+//                                
+//                                maxProb = feature[nextKey].floatValue
+//                                box_width = feature[widthKey].floatValue
+//                                box_height = feature[heightKey].floatValue
+//                                box_x = feature[xKey].floatValue - (box_width / 2)
+//                                box_y = feature[yKey].floatValue - (box_height / 2)
+//                            }
+//                        }
+//                    }
+//                }
+//                boundingBox = CGRect(x: CGFloat(box_x)
+//                                     ,y: CGFloat(box_y)
+//                                     ,width: CGFloat(box_width)
+//                                     ,height: CGFloat(box_height))
+//                
+//                let objectBounds = VNImageRectForNormalizedRect(boundingBox!, Int(bufferSize.width), Int(bufferSize.height))
+//                
+//                let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+//                
+////                let textLayer = self.createTextSubLayerInBounds(objectBounds,
+////                                                                identifier: topLabelObservation.identifier,
+////                                                                confidence: topLabelObservation.confidence)
+////                shapeLayer.addSublayer(textLayer)
+//                detectionOverlay.addSublayer(shapeLayer)
+//            }
+//        }
         for observation in results where observation is VNRecognizedObjectObservation {
             guard let objectObservation = observation as? VNRecognizedObjectObservation else {
                 continue
@@ -121,8 +367,8 @@ class VisionObjectRecognitionViewController: ViewController {
                                                             confidence: topLabelObservation.confidence)
             shapeLayer.addSublayer(textLayer)
             detectionOverlay.addSublayer(shapeLayer)
-            print(objectObservation.boundingBox.origin.x * bufferSize.width, objectObservation.boundingBox.origin.y * bufferSize.height, objectObservation.boundingBox.width * bufferSize.width,
-                  objectObservation.boundingBox.height * bufferSize.height)
+//            print(objectObservation.boundingBox.origin.x * bufferSize.width, objectObservation.boundingBox.origin.y * bufferSize.height, objectObservation.boundingBox.width * bufferSize.width,
+//                  objectObservation.boundingBox.height * bufferSize.height)
         }
         self.updateLayerGeometry()
         CATransaction.commit()
@@ -205,6 +451,12 @@ class VisionObjectRecognitionViewController: ViewController {
         let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: exifOrientation, options: [:])
         do {
             try imageRequestHandler.perform(self.requests)
+        } catch {
+            print(error)
+        }
+        
+        do {
+            try imageRequestHandler.perform(self.requestsMeasure)
         } catch {
             print(error)
         }
