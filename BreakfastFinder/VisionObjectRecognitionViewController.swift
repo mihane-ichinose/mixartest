@@ -23,11 +23,12 @@ class VisionObjectRecognitionViewController: ViewController {
     // Vision parts
     private var requests = [VNRequest]()
     private var requestsMeasure = [VNRequest]()
-    
+
     @discardableResult
     func setupVision(mode: String) -> NSError? {
         // Setup Vision parts
         let error: NSError! = nil
+        
         if (mode == "measure") {
             print("measure")
             guard let modelURL = Bundle.main.url(forResource: "yolov8n-seg", withExtension: "mlmodelc") else {
@@ -62,7 +63,6 @@ class VisionObjectRecognitionViewController: ViewController {
                 print("Model loading went wrong: \(error)")
             }
         } else{
-            print("Recipe")
             self.drawRecipe(recipe: mode)
         }
         
@@ -73,51 +73,63 @@ class VisionObjectRecognitionViewController: ViewController {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         detectionOverlay.sublayers = nil // remove all the old recognized objects
-        print(results)
         for observation in results where observation is VNCoreMLFeatureValueObservation{
             guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
                 continue
             }
             var value = ""
+            var oz_val = ""
             //print(objectObservation.featureValue)
             let featureValue = objectObservation.featureValue
             if let multiArray = featureValue.multiArrayValue {
                 for row in 0..<multiArray.shape[0].intValue {
                     for col in 0..<multiArray.shape[1].intValue {
-                        value = String(Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue))
-                        print(value+"ml", terminator: " ") // Print each element separated by a space
+                        var int_val = Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue)
+                        value = String(int_val)
+                        oz_val = String(Double(int_val) / 29.574)
+                        //print(value+"ml/"+oz_val+"oz", terminator: " ") // Print each element separated by a space
                     }
-                    print() // Move to the next line after printing each row
+                    //print() // Move to the next line after printing each row
                 }
             } else {
                 print("Feature value is not a multi-array")
             }
             let textLayer = CATextLayer()
             textLayer.name = "Object Label"
-            textLayer.string = value + " ml"
+            textLayer.string = value + " ml\n" + oz_val + " oz"
             textLayer.foregroundColor = UIColor.black.cgColor
-            textLayer.fontSize = 40
+            textLayer.fontSize = 30
             textLayer.frame = CGRect(x: 0, y: 100, width: 100, height: 50)
             textLayer.contentsScale = 2.0 // retina rendering
             textLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
             
             // Create a background layer
             let backgroundLayer = CALayer()
-            backgroundLayer.backgroundColor = UIColor.yellow.withAlphaComponent(0.5).cgColor // Set background color
-            backgroundLayer.frame = CGRect(x: 650, y: 200, width: 100, height: 350)
+            backgroundLayer.backgroundColor = UIColor.cyan.withAlphaComponent(0.5).cgColor // Set background color
+            backgroundLayer.frame = CGRect(x: 650, y: 150, width: 100, height: 250)
             
             // 创建一个矩形层作为按钮
             let buttonLayer = CALayer()
             buttonLayer.backgroundColor = UIColor.blue.cgColor
-            buttonLayer.frame = CGRect(x: 20, y: 50, width: 100, height: 50)
+            buttonLayer.frame = CGRect(x: 50, y: 50, width: 50, height: 80)
             buttonLayer.cornerRadius = 5 // 可选：为按钮添加圆角
+            
+            let backTextLayer = CATextLayer()
+            backTextLayer.name = "Back Text"
+            backTextLayer.string = "Back"
+            backTextLayer.foregroundColor = UIColor.white.cgColor
+            backTextLayer.fontSize = 20
+            backTextLayer.frame = CGRect(x: 30, y: 10, width: 50, height: 80)
+            backTextLayer.contentsScale = 2.0 // retina rendering
+            backTextLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
             
             // 添加点击手势
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
             self.view.addGestureRecognizer(tapGesture)
             
             // 将矩形层添加到视图的层级结构中
-            self.view.layer.addSublayer(buttonLayer)
+            detectionOverlay.addSublayer(buttonLayer)
+            buttonLayer.addSublayer(backTextLayer)
             
             detectionOverlay.addSublayer(backgroundLayer)
             backgroundLayer.addSublayer(textLayer)
@@ -127,6 +139,7 @@ class VisionObjectRecognitionViewController: ViewController {
         self.updateLayerGeometry()
         CATransaction.commit()
     }
+
     
     func getBoundingBox(feature: MLMultiArray)->(CGRect,Float){
         var boundingBox = CGRect(x: 0,y: 0,width: 10,height: 10)
@@ -137,7 +150,7 @@ class VisionObjectRecognitionViewController: ViewController {
         var box_y : Float = 0
         var box_width : Float = 0
         var box_height : Float = 0
-        print(feature.shape[2].intValue-1)
+        //print(feature.shape[2].intValue-1)
         for j in 0..<feature.shape[2].intValue-1
         {
             //cup 41 + 4
@@ -167,7 +180,7 @@ class VisionObjectRecognitionViewController: ViewController {
         self.maxProbValue = "\(maxProb)"
         boundingBox = CGRect(x: CGFloat(box_x)/640
                              ,y: CGFloat(box_y)/640
-                             ,width: CGFloat(box_width)/640
+                             ,width: CGFloat(box_width)/800
                              ,height: CGFloat(box_height)/640)//normalize
         var maxMaskProb : Float = 0
         var maxMaskIdx = 0
@@ -181,11 +194,11 @@ class VisionObjectRecognitionViewController: ViewController {
                 }
             }
             bestMaskIdx = maxMaskIdx-84
-            print("bestId: %d", bestMaskIdx)
-            print("\(maskPrbIdx-5) Best mask probablity is \(maxMaskIdx-5) with value \(maxMaskProb)")
+            //print("bestId: %d", bestMaskIdx)
+            //print("\(maskPrbIdx-5) Best mask probablity is \(maxMaskIdx-5) with value \(maxMaskProb)")
         }
-        print("maxProb",maxProb)
-        print("Bounding box from classifier \(boundingBox)")
+        //print("maxProb",maxProb)
+        //print("Bounding box from classifier \(boundingBox)")
         return (boundingBox, maxProb)
     }
     
@@ -277,13 +290,13 @@ class VisionObjectRecognitionViewController: ViewController {
 
         let result_0 = results[0] as! VNCoreMLFeatureValueObservation
         let result_1 = results[1] as! VNCoreMLFeatureValueObservation
-        print(result_0.featureName)
-        print(result_1.featureName)
+        //print(result_0.featureName)
+        //print(result_1.featureName)
         
         let boundingBox_result = getBoundingBox(feature:result_1.featureValue.multiArrayValue!)
         let boundingBox = boundingBox_result.0
         let confidence = boundingBox_result.1
-        print(confidence)
+        //print(confidence)
         if confidence > 0.03 {
             let objectBounds = VNImageRectForNormalizedRect(boundingBox, Int(bufferSize.width), Int(bufferSize.height))
 
@@ -375,6 +388,7 @@ class VisionObjectRecognitionViewController: ViewController {
     }
     
     func drawRecipe(recipe: String) {
+        detectionOverlay.sublayers = nil
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
         if (recipe == "Amaro Caldo") {
@@ -413,6 +427,28 @@ class VisionObjectRecognitionViewController: ViewController {
         nextButton.addTarget(self, action: #selector(goToNextSentence), for: .touchUpInside)
         view.addSubview(nextButton)
         
+        // 创建一个矩形层作为按钮
+        let buttonLayer = CALayer()
+        buttonLayer.backgroundColor = UIColor.blue.cgColor
+        buttonLayer.frame = CGRect(x: 50, y: 50, width: 50, height: 80)
+        buttonLayer.cornerRadius = 5 // 可选：为按钮添加圆角
+        
+        let backTextLayer = CATextLayer()
+        backTextLayer.name = "Back Text"
+        backTextLayer.string = "Back"
+        backTextLayer.foregroundColor = UIColor.white.cgColor
+        backTextLayer.fontSize = 20
+        backTextLayer.frame = CGRect(x: 30, y: 10, width: 50, height: 80)
+        backTextLayer.contentsScale = 2.0 // retina rendering
+        backTextLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
+        
+        // 添加点击手势
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        self.view.addGestureRecognizer(tapGesture)
+        
+        // 将矩形层添加到视图的层级结构中
+        detectionOverlay.addSublayer(buttonLayer)
+        buttonLayer.addSublayer(backTextLayer)
         
         self.updateLayerGeometry()
         CATransaction.commit()
@@ -437,7 +473,10 @@ class VisionObjectRecognitionViewController: ViewController {
         let point = gesture.location(in: self.view)
         if self.view.layer.sublayers?.first(where: { $0.frame.contains(point) }) != nil {
             // 如果是按钮层被点击，返回上一个页面
-            self.navigationController?.popToRootViewController(animated: true)
+//            self.navigationController?.popToRootViewController(animated: true)
+            //removeAllCALayersFromLayer(self.detectionOverlay)
+            self.detectionOverlay.removeFromSuperlayer()
+            stopCaptureSession()
         }
     }
     

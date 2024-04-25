@@ -81,7 +81,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         if self.navigationController?.viewControllers.count ?? 0 > 1 {
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(backButtonTapped))
         }
-//        setupAVCapture()
+        //        setupAVCapture()
     }
     
     @objc func backButtonTapped() {
@@ -109,7 +109,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 // You can perform any action here, like navigating to a new page
                 // Navigate to RecipeDetailViewController
                 self.setupAVCapture(mode: recipe)
-//                recipeDetailVC.recipeName = recipe
+                //                recipeDetailVC.recipeName = recipe
                 //self?.navigationController?.pushViewController(recipeDetailVC, animated: true)
             }
             alertController.addAction(action)
@@ -130,32 +130,32 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     @objc func setupAVCapture(mode: String) {
-//        let inputFolderUrl = URL(fileURLWithPath: "/Users/zhuang52/Downloads/RecognizingObjectsInLiveCapture/images", isDirectory: true)
-//        let url = URL(fileURLWithPath: "./MyObject.usdz")
-//        var maybeSession: PhotogrammetrySession? = nil
-//        do {
-//            maybeSession = try PhotogrammetrySession(input: inputFolderUrl)
-//        } catch {
-//            print("Error info: \(error)")
-//            print("An error has occured")
-//        }
-//        
-//        guard let dsession = maybeSession else {
-//            print("2 erorr has occured")
-//            return
-//        }
-//        
-//        do {
-//            var request = PhotogrammetrySession.Request.modelFile(url: url)
-//            try dsession.process(requests: [ request ])
-//            // Enter the infinite loop dispatcher used to process asynchronous
-//            // blocks on the main queue. You explicitly exit above to stop the loop.
-//            RunLoop.main.run()
-//        } catch {
-//            print("Error info: \(error)")
-//            print("Something happened running session")
-//            return
-//        }
+        //        let inputFolderUrl = URL(fileURLWithPath: "/Users/zhuang52/Downloads/RecognizingObjectsInLiveCapture/images", isDirectory: true)
+        //        let url = URL(fileURLWithPath: "./MyObject.usdz")
+        //        var maybeSession: PhotogrammetrySession? = nil
+        //        do {
+        //            maybeSession = try PhotogrammetrySession(input: inputFolderUrl)
+        //        } catch {
+        //            print("Error info: \(error)")
+        //            print("An error has occured")
+        //        }
+        //
+        //        guard let dsession = maybeSession else {
+        //            print("2 erorr has occured")
+        //            return
+        //        }
+        //
+        //        do {
+        //            var request = PhotogrammetrySession.Request.modelFile(url: url)
+        //            try dsession.process(requests: [ request ])
+        //            // Enter the infinite loop dispatcher used to process asynchronous
+        //            // blocks on the main queue. You explicitly exit above to stop the loop.
+        //            RunLoop.main.run()
+        //        } catch {
+        //            print("Error info: \(error)")
+        //            print("Something happened running session")
+        //            return
+        //        }
         
         var deviceInput: AVCaptureDeviceInput!
         // Select a video device, make an input
@@ -209,13 +209,43 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     func startCaptureSession() {
-        session.startRunning()
+        DispatchQueue.global(qos: .background).async {
+            // Start AVCaptureSession
+            self.session.startRunning()
+        }
     }
+    
+    func stopCaptureSession() {
+        DispatchQueue.global(qos: .background).async {
+            self.clearSessionConfiguration()
+            self.teardownAVCapture()
+            self.session.stopRunning()
+        }
+    }
+    
+    func clearSessionConfiguration() {
+        session.beginConfiguration()
+
+        // Remove all existing inputs
+        for input in session.inputs {
+            session.removeInput(input)
+        }
+
+        // Remove all existing outputs
+        for output in session.outputs {
+            session.removeOutput(output)
+        }
+
+        session.commitConfiguration()
+    }
+
     
     // Clean up capture setup
     func teardownAVCapture() {
-        previewLayer.removeFromSuperlayer()
-        previewLayer = nil
+        DispatchQueue.global(qos: .background).async {
+            self.previewLayer.removeFromSuperlayer()
+            self.previewLayer = nil
+        }
     }
     
     func captureOutput(_ captureOutput: AVCaptureOutput, didDrop didDropSampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
