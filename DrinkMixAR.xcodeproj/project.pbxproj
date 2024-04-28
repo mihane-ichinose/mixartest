@@ -335,7 +335,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
@@ -357,7 +357,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7JZN89TNPZ;
+				DEVELOPMENT_TEAM = 7BUD98489K;
 				INFOPLIST_FILE = BreakfastFinder/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MixAR;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";

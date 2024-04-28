@@ -17,13 +17,14 @@ class VisionObjectRecognitionViewController: ViewController {
     var sentences = [""]
     var currentSentenceIndex = 0
     let sentenceLayer = CATextLayer()
+    var begin_measure = false
     
     private var detectionOverlay: CALayer! = nil
     
     // Vision parts
     private var requests = [VNRequest]()
     private var requestsMeasure = [VNRequest]()
-
+    
     @discardableResult
     func setupVision(mode: String) -> NSError? {
         // Setup Vision parts
@@ -68,7 +69,7 @@ class VisionObjectRecognitionViewController: ViewController {
         
         return error
     }
-
+    
     func drawVisionRequestResultsMeasure(_ results: [Any]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
@@ -80,20 +81,26 @@ class VisionObjectRecognitionViewController: ViewController {
             var value = ""
             var oz_val = ""
             //print(objectObservation.featureValue)
-            let featureValue = objectObservation.featureValue
-            if let multiArray = featureValue.multiArrayValue {
-                for row in 0..<multiArray.shape[0].intValue {
-                    for col in 0..<multiArray.shape[1].intValue {
-                        var int_val = Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue)
-                        value = String(int_val)
-                        oz_val = String(Double(int_val) / 29.574)
-                        //print(value+"ml/"+oz_val+"oz", terminator: " ") // Print each element separated by a space
+            if(self.begin_measure == true) {
+                let featureValue = objectObservation.featureValue
+                if let multiArray = featureValue.multiArrayValue {
+                    for row in 0..<multiArray.shape[0].intValue {
+                        for col in 0..<multiArray.shape[1].intValue {
+                            var int_val = Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue)
+                            value = String(int_val)
+                            oz_val = String(Double(int_val) / 29.574)
+                            //print(value+"ml/"+oz_val+"oz", terminator: " ") // Print each element separated by a space
+                        }
+                        //print() // Move to the next line after printing each row
                     }
-                    //print() // Move to the next line after printing each row
+                } else {
+                    print("Feature value is not a multi-array")
                 }
             } else {
-                print("Feature value is not a multi-array")
+                value = "0"
+                oz_val = "0"
             }
+            self.begin_measure = false
             let textLayer = CATextLayer()
             textLayer.name = "Object Label"
             textLayer.string = value + " ml\n" + oz_val + " oz"
@@ -133,13 +140,13 @@ class VisionObjectRecognitionViewController: ViewController {
             
             detectionOverlay.addSublayer(backgroundLayer)
             backgroundLayer.addSublayer(textLayer)
-
+            
         }
         
         self.updateLayerGeometry()
         CATransaction.commit()
     }
-
+    
     
     func getBoundingBox(feature: MLMultiArray)->(CGRect,Float){
         var boundingBox = CGRect(x: 0,y: 0,width: 10,height: 10)
@@ -172,44 +179,49 @@ class VisionObjectRecognitionViewController: ViewController {
                 }
             }
         }
-//        print(feature)
-//        for maskPrbIdx in 0..<feature.shape[1].intValue-1{
-//            let key = [0,maskPrbIdx,0] as [NSNumber]
-//            print(feature[key])
-//        }
-        self.maxProbValue = "\(maxProb)"
+    //        print(feature)
+    //        for maskPrbIdx in 0..<feature.shape[1].intValue-1{
+    //            let key = [0,maskPrbIdx,0] as [NSNumber]
+    //            print(feature[key])
+    //        }
+        maxProbValue = "\(maxProb)"
         boundingBox = CGRect(x: CGFloat(box_x)/640
                              ,y: CGFloat(box_y)/640
-                             ,width: CGFloat(box_width)/800
+                             ,width: CGFloat(box_width)/640
                              ,height: CGFloat(box_height)/640)//normalize
         var maxMaskProb : Float = 0
         var maxMaskIdx = 0
-        for maskPrbIdx in 84..<feature.shape[1].intValue-1{
-            let key = [0,maskPrbIdx,probMaxIdx] as [NSNumber]
-            let nextKey = [0,maskPrbIdx+1,probMaxIdx] as [NSNumber]
-            if(feature[key].floatValue < feature[nextKey].floatValue){
-                if(maxMaskProb < feature[nextKey].floatValue){
-                    maxMaskIdx = maskPrbIdx+1
-                    maxMaskProb = feature[nextKey].floatValue
-                }
-            }
-            bestMaskIdx = maxMaskIdx-84
-            //print("bestId: %d", bestMaskIdx)
-            //print("\(maskPrbIdx-5) Best mask probablity is \(maxMaskIdx-5) with value \(maxMaskProb)")
-        }
-        //print("maxProb",maxProb)
-        //print("Bounding box from classifier \(boundingBox)")
+    //    for maskPrbIdx in 84..<feature.shape[1].intValue-1{
+    //        let key = [0,maskPrbIdx,probMaxIdx] as [NSNumber]
+    //        let nextKey = [0,maskPrbIdx+1,probMaxIdx] as [NSNumber]
+    //        if(feature[key].floatValue < feature[nextKey].floatValue){
+    //            if(maxMaskProb < feature[nextKey].floatValue){
+    //                maxMaskIdx = maskPrbIdx+1
+    //                maxMaskProb = feature[nextKey].floatValue
+    //            }
+    //        }
+    //        bestMaskIdx = maxMaskIdx-84
+    //        //print("bestId: %d", bestMaskIdx)
+    //        //print("\(maskPrbIdx-5) Best mask probablity is \(maxMaskIdx-5) with value \(maxMaskProb)")
+    //    }
+        bestMaskIdx = probMaxIdx
+        print("maxProb",maxProb)
+        print("Bounding box from classifier \(boundingBox)")
         return (boundingBox, maxProb)
     }
     
-    fileprivate func DrawMask(_ boundingBox: CGRect, masks: MLMultiArray) {
-//        let testImage = UIImage(contentsOfFile: Bundle.main.path(forResource: "tomcruise", ofType: "jpeg")!)!
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: imageViewWidth, height: imageViewHeight))
+    private func sigmoid(z:Float) -> Float{
+        return 1.0/(1.0+exp(z))
+    }
+    
+    fileprivate func getMask(_ boundingBox: CGRect, masks: MLMultiArray, masks_weight:MLMultiArray) -> [[Float]]{
+        //    let testImage = UIImage(contentsOfFile: Bundle.main.path(forResource: "tomcruise", ofType: "jpeg")!)!
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: bufferSize.width, height: bufferSize.height))
         
-        let scaledX : CGFloat = (boundingBox.minX/650)*imageViewWidth
-        let scaledY : CGFloat = (boundingBox.minY/650)*imageViewHeight
-        let scaledWidth : CGFloat = (boundingBox.width/650)*imageViewWidth
-        let scaledHeight : CGFloat = (boundingBox.height/650)*imageViewHeight
+        let scaledX : CGFloat = (boundingBox.minX)*bufferSize.width
+        let scaledY : CGFloat = (boundingBox.minY)*bufferSize.height
+        let scaledWidth : CGFloat = (boundingBox.width)*bufferSize.width
+        let scaledHeight : CGFloat = (boundingBox.height)*bufferSize.height
         
         let rectangle = CGRect(x: scaledX, y: scaledY, width: scaledWidth, height: scaledHeight)
         print("scaled rectangle \(rectangle)")
@@ -222,19 +234,25 @@ class VisionObjectRecognitionViewController: ViewController {
         var maskProbYAxis : [Float] = []
         print("Actual Image bounds \(rectangle)")
         //get the bounds for mask to match the bounds
-        let mask_x_min = (rectangle.minX/imageViewWidth)*160
-        let mask_x_max = (rectangle.maxX/imageViewWidth)*160
+        let mask_x_min = (rectangle.minX/bufferSize.width)*160
+        let mask_x_max = (rectangle.maxX/bufferSize.width)*160
         
-        let mask_y_min = (rectangle.minY/imageViewHeight)*160
-        let mask_y_max = (rectangle.maxY/imageViewHeight)*160
+        let mask_y_min = (rectangle.minY/bufferSize.height)*160
+        let mask_y_max = (rectangle.maxY/bufferSize.height)*160
         
+        var mask_point = Float(0.0)
         for y in 0..<masks.shape[2].intValue{
             maskProbYAxis.removeAll()
             for x in 0..<masks.shape[3].intValue{
-                let pointKey = [0,bestMaskIdx,y,x] as [NSNumber]
-                if(sigmoid(z: masks[pointKey].floatValue) < maskProbThreshold
+                mask_point = Float(0.0)
+                for z in 0..<masks.shape[1].intValue{
+                    let pointKey = [0,z,y,x] as [NSNumber]
+                    let weightKey = [0,z+84,bestMaskIdx] as [NSNumber]
+                    mask_point = mask_point + masks[pointKey].floatValue * masks_weight[weightKey].floatValue
+                }
+                if(sigmoid(z: mask_point) < maskProbThreshold
                    && x >=  Int(mask_x_min) && x <= Int(mask_x_max)
-                && y >= Int(mask_y_min) && y <= Int(mask_y_max)){
+                   && y >= Int(mask_y_min) && y <= Int(mask_y_max)){
                     maskProbYAxis.append(1.0)
                 }
                 else{
@@ -243,44 +261,7 @@ class VisionObjectRecognitionViewController: ViewController {
             }
             maskProbalities.append(maskProbYAxis)
         }
-        
-        let mask = renderer.image(){ context in
-            
-            context.cgContext.setLineWidth(1)
-            for y in 0..<maskProbalities.count {
-                for x in 0..<maskProbalities[y].count{
-                    
-                    let xFactor = Float(imageViewWidth)/160
-                    let yFactor = Float(imageViewHeight)/160
-                    let maskScaled_X = Double(x) * Double(xFactor)
-                    let maskScaled_Y = Double(y) * Double(yFactor)
-                    
-                    if(maskProbalities[y][x] == 1.0)
-                    {
-                        context.cgContext.setStrokeColor(UIColor.red.withAlphaComponent(0.2).cgColor)
-                        context.cgContext.addRect(CGRect(x: maskScaled_X, y:maskScaled_Y , width: 1, height: 1))
-                        context.cgContext.drawPath(using: .stroke)
-                    }
-                }
-            }
-        }
-        
-//        let imageWithBox = renderer.image(){ context in
-//            testImage.draw(in: CGRect(x: 0, y: 0, width: imageViewWidth, height: imageViewHeight))
-//            //context.cgContext.draw(testImage.cgImage!, in: )
-//            context.cgContext.setShouldAntialias(true)
-//            context.cgContext.setStrokeColor(UIColor.red.cgColor)
-//            context.cgContext.setLineWidth(2)
-//            context.cgContext.addRect(rectangle)
-//            context.cgContext.drawPath(using: .stroke)
-//            mask.draw(in: CGRect(x: 0, y: 0, width: imageViewWidth, height: imageViewHeight))
-//        }
-         
-//        self.testImageSrc = imageWithBox
-    }
-    
-    private func sigmoid(z:Float) -> Float{
-        return 1.0/(1.0+exp(z))
+        return maskProbalities
     }
     
     func drawVisionRequestResults(_ results: [Any]) {
@@ -298,90 +279,43 @@ class VisionObjectRecognitionViewController: ViewController {
         let confidence = boundingBox_result.1
         //print(confidence)
         if confidence > 0.03 {
-            let objectBounds = VNImageRectForNormalizedRect(boundingBox, Int(bufferSize.width), Int(bufferSize.height))
-
-            let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+//            let objectBounds = VNImageRectForNormalizedRect(boundingBox, Int(bufferSize.width), Int(bufferSize.height))
+//
+//            let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
+//            
+//            //                let textLayer = self.createTextSubLayerInBounds(objectBounds,
+//            //                                                                identifier: topLabelObservation.identifier,
+//            //                                                                confidence: topLabelObservation.confidence)
+//            //                shapeLayer.addSublayer(textLayer)
+//            detectionOverlay.addSublayer(shapeLayer)
+            let boundingBoxLayer = CALayer()
+            boundingBoxLayer.frame = CGRect(x: boundingBox.minX*CGFloat(bufferSize.width), y: boundingBox.minY*CGFloat(bufferSize.height), width: boundingBox.width*CGFloat(bufferSize.width), height: boundingBox.height*CGFloat(bufferSize.height)) // Example bounding box
+            //boundingBoxLayer.frame = CGRect(x: 100, y: 400, width: 100, height: 400) // Example bounding box
+            boundingBoxLayer.borderColor = UIColor.red.cgColor
+            boundingBoxLayer.borderWidth = 2.0
+            print(bufferSize.width)
+            boundingBoxLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(0)).scaledBy(x: 0.7, y: -1))
             
-            //                let textLayer = self.createTextSubLayerInBounds(objectBounds,
-            //                                                                identifier: topLabelObservation.identifier,
-            //                                                                confidence: topLabelObservation.confidence)
-            //                shapeLayer.addSublayer(textLayer)
-            detectionOverlay.addSublayer(shapeLayer)
-    //        DrawMask(boundingBox,masks: result_1.featureValue.multiArrayValue! )
-        }
-
-//        for observation in results where observation is VNCoreMLFeatureValueObservation{
-//            guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
-//                continue
-//            }
-//            print(objectObservation)
-//            var maxProb: Float = 0.0
-//            var probMaxIdx: Int = 0
-//            var box_width: Float = 0.0
-//            var box_height: Float = 0.0
-//            var box_x: Float = 0.0
-//            var box_y: Float = 0.0
-//            var boundingBox: CGRect? = nil
-//            if objectObservation.featureName == "var_1053" {
-//                let feature = objectObservation.featureValue.multiArrayValue
-//                if let feature = feature {
-//                    for j in 0..<(feature.shape[2].intValue - 2) {
-//                        let key = [0, 4, j] as [NSNumber]
-//                        let nextKey = [0, 4, j + 1] as [NSNumber]
-//                        
-//                        if feature[key].floatValue < feature[nextKey].floatValue {
-//                            if maxProb < feature[nextKey].floatValue {
-//                                probMaxIdx = j + 1
-//                                let xKey = [0, 0, probMaxIdx] as [NSNumber]
-//                                let yKey = [0, 1, probMaxIdx] as [NSNumber]
-//                                let widthKey = [0, 2, probMaxIdx] as [NSNumber]
-//                                let heightKey = [0, 3, probMaxIdx] as [NSNumber]
-//                                
-//                                maxProb = feature[nextKey].floatValue
-//                                box_width = feature[widthKey].floatValue
-//                                box_height = feature[heightKey].floatValue
-//                                box_x = feature[xKey].floatValue - (box_width / 2)
-//                                box_y = feature[yKey].floatValue - (box_height / 2)
-//                            }
-//                        }
+//            let maskLayer = CALayer()
+//            let mask = getMask(boundingBox, masks: result_0.featureValue.multiArrayValue!, masks_weight: result_1.featureValue.multiArrayValue!)
+//            for y in 0..<mask.count {
+//                for x in 0..<mask[y].count {
+//                    let xFactor = Float(bufferSize.width) / 160
+//                    let yFactor = Float(bufferSize.height) / 160
+//                    let maskScaled_X = Double(x) * Double(xFactor)
+//                    let maskScaled_Y = Double(y) * Double(yFactor)
+//
+//                    if mask[y][x] == 1.0 {
+//                        let rectLayer = CALayer()
+//                        rectLayer.frame = CGRect(x: maskScaled_X, y: maskScaled_Y, width: 2, height: 2)
+//                        rectLayer.backgroundColor = UIColor.blue.withAlphaComponent(0.2).cgColor
+//                        maskLayer.addSublayer(rectLayer)
 //                    }
 //                }
-//                boundingBox = CGRect(x: CGFloat(box_x)
-//                                     ,y: CGFloat(box_y)
-//                                     ,width: CGFloat(box_width)
-//                                     ,height: CGFloat(box_height))
-//                
-//                let objectBounds = VNImageRectForNormalizedRect(boundingBox!, Int(bufferSize.width), Int(bufferSize.height))
-//                
-//                let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
-//                
-////                let textLayer = self.createTextSubLayerInBounds(objectBounds,
-////                                                                identifier: topLabelObservation.identifier,
-////                                                                confidence: topLabelObservation.confidence)
-////                shapeLayer.addSublayer(textLayer)
-//                detectionOverlay.addSublayer(shapeLayer)
 //            }
-//        }
-        for observation in results where observation is VNRecognizedObjectObservation {
-            guard let objectObservation = observation as? VNRecognizedObjectObservation else {
-                continue
-            }
-            // Select only the label with the highest confidence.
-            let topLabelObservation = objectObservation.labels[0]
-//            if topLabelObservation.identifier != "bottle" {
-//                continue
-//            }
-            let objectBounds = VNImageRectForNormalizedRect(objectObservation.boundingBox, Int(bufferSize.width), Int(bufferSize.height))
-            
-            let shapeLayer = self.createRoundedRectLayerWithBounds(objectBounds)
-            
-            let textLayer = self.createTextSubLayerInBounds(objectBounds,
-                                                            identifier: topLabelObservation.identifier,
-                                                            confidence: topLabelObservation.confidence)
-            shapeLayer.addSublayer(textLayer)
-            detectionOverlay.addSublayer(shapeLayer)
-//            print(objectObservation.boundingBox.origin.x * bufferSize.width, objectObservation.boundingBox.origin.y * bufferSize.height, objectObservation.boundingBox.width * bufferSize.width,
-//                  objectObservation.boundingBox.height * bufferSize.height)
+//            boundingBoxLayer.addSublayer(maskLayer)
+            detectionOverlay.addSublayer(boundingBoxLayer)
+            self.begin_measure = true
         }
         self.updateLayerGeometry()
         CATransaction.commit()
@@ -532,6 +466,9 @@ class VisionObjectRecognitionViewController: ViewController {
         let yScale: CGFloat = bounds.size.height / bufferSize.width
         
         scale = fmax(xScale, yScale)
+        print(xScale)
+        print(yScale)
+        print(scale)
         if scale.isInfinite {
             scale = 1.0
         }
