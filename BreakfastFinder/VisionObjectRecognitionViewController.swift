@@ -18,6 +18,8 @@ class VisionObjectRecognitionViewController: ViewController {
     var currentSentenceIndex = 0
     let sentenceLayer = CATextLayer()
     var begin_measure = false
+    var window_index = 0
+    var boundingBoxWindow = [CGRect](repeating: CGRect(x:0, y:0, width:0, height:0), count: 3)
     
     private var detectionOverlay: CALayer! = nil
     
@@ -78,6 +80,7 @@ class VisionObjectRecognitionViewController: ViewController {
             guard let objectObservation = observation as? VNCoreMLFeatureValueObservation else {
                 continue
             }
+            var int_val = 0
             var value = ""
             var oz_val = ""
             //print(objectObservation.featureValue)
@@ -86,9 +89,9 @@ class VisionObjectRecognitionViewController: ViewController {
                 if let multiArray = featureValue.multiArrayValue {
                     for row in 0..<multiArray.shape[0].intValue {
                         for col in 0..<multiArray.shape[1].intValue {
-                            var int_val = Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue)
+                            int_val = Int(multiArray[row * multiArray.strides[0].intValue + col * multiArray.strides[1].intValue].intValue)
                             value = String(int_val)
-                            oz_val = String(Double(int_val) / 29.574)
+                            oz_val = String(round(Double(int_val)*10 / 29.574)/10)
                             //print(value+"ml/"+oz_val+"oz", terminator: " ") // Print each element separated by a space
                         }
                         //print() // Move to the next line after printing each row
@@ -106,7 +109,7 @@ class VisionObjectRecognitionViewController: ViewController {
             textLayer.string = value + " ml\n" + oz_val + " oz"
             textLayer.foregroundColor = UIColor.black.cgColor
             textLayer.fontSize = 30
-            textLayer.frame = CGRect(x: 0, y: 100, width: 100, height: 50)
+            textLayer.frame = CGRect(x: 0, y: 100, width: 100, height: 80)
             textLayer.contentsScale = 2.0 // retina rendering
             textLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(.pi / 2.0)).scaledBy(x: 1.0, y: -1.0))
             
@@ -134,12 +137,29 @@ class VisionObjectRecognitionViewController: ViewController {
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
             self.view.addGestureRecognizer(tapGesture)
             
+            // add scale visual layer
+            for x in 0..<320/5{
+                let scaleLayer = CALayer()
+                scaleLayer.frame = CGRect(x: 600 - x*5 , y: 50, width: 5, height: 50)
+                if int_val < x*5 {
+                    scaleLayer.backgroundColor = UIColor.cyan.withAlphaComponent(0.5).cgColor
+                } else {
+                    scaleLayer.backgroundColor = UIColor.blue.withAlphaComponent(0.6).cgColor
+                }
+                detectionOverlay.addSublayer(scaleLayer)
+            }
+            let scaleLayer = CALayer()
+            scaleLayer.frame = CGRect(x: 600 , y: 50, width: 10, height: 50)
+            scaleLayer.backgroundColor = UIColor.blue.withAlphaComponent(0.6).cgColor
+
             // 将矩形层添加到视图的层级结构中
             detectionOverlay.addSublayer(buttonLayer)
             buttonLayer.addSublayer(backTextLayer)
             
             detectionOverlay.addSublayer(backgroundLayer)
             backgroundLayer.addSublayer(textLayer)
+            
+//            detectionOverlay.addSublayer(scaleLayer)
             
         }
         
@@ -189,8 +209,8 @@ class VisionObjectRecognitionViewController: ViewController {
                              ,y: CGFloat(box_y)/640
                              ,width: CGFloat(box_width)/640
                              ,height: CGFloat(box_height)/640)//normalize
-        var maxMaskProb : Float = 0
-        var maxMaskIdx = 0
+        //var maxMaskProb : Float = 0
+        //var maxMaskIdx = 0
     //    for maskPrbIdx in 84..<feature.shape[1].intValue-1{
     //        let key = [0,maskPrbIdx,probMaxIdx] as [NSNumber]
     //        let nextKey = [0,maskPrbIdx+1,probMaxIdx] as [NSNumber]
@@ -214,10 +234,9 @@ class VisionObjectRecognitionViewController: ViewController {
         return 1.0/(1.0+exp(z))
     }
     
-    fileprivate func getMask(_ boundingBox: CGRect, masks: MLMultiArray, masks_weight:MLMultiArray) -> [[Float]]{
+    func getMask(_ boundingBox: CGRect, masks: MLMultiArray, masks_weight:MLMultiArray) -> [[Float]]{
         //    let testImage = UIImage(contentsOfFile: Bundle.main.path(forResource: "tomcruise", ofType: "jpeg")!)!
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: bufferSize.width, height: bufferSize.height))
-        
+
         let scaledX : CGFloat = (boundingBox.minX)*bufferSize.width
         let scaledY : CGFloat = (boundingBox.minY)*bufferSize.height
         let scaledWidth : CGFloat = (boundingBox.width)*bufferSize.width
@@ -228,7 +247,7 @@ class VisionObjectRecognitionViewController: ViewController {
         
         
         let maskProbThreshold : Float = 0.5
-        let maskFill : Float = 1.0
+//        let maskFill : Float = 1.0
         //draw the mask
         var maskProbalities : [[Float]] = [] //this will contains 160x160 mask pixel probablities
         var maskProbYAxis : [Float] = []
@@ -263,7 +282,34 @@ class VisionObjectRecognitionViewController: ViewController {
         }
         return maskProbalities
     }
-    
+    // Function to calculate the mean of CGRects
+    func meanRect(of rects: [CGRect]) -> CGRect {
+        guard !rects.isEmpty else { return .zero }
+        
+        // Initialize variables to accumulate the sum of properties
+        var totalOriginX: CGFloat = 0
+        var totalOriginY: CGFloat = 0
+        var totalWidth: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        
+        // Accumulate the sum of properties of each CGRect
+        for rect in rects {
+            totalOriginX += rect.origin.x
+            totalOriginY += rect.origin.y
+            totalWidth += rect.width
+            totalHeight += rect.height
+        }
+        
+        // Calculate the mean values
+        let meanOriginX = totalOriginX / CGFloat(rects.count)
+        let meanOriginY = totalOriginY / CGFloat(rects.count)
+        let meanWidth = totalWidth / CGFloat(rects.count)
+        let meanHeight = totalHeight / CGFloat(rects.count)
+        
+        // Create and return the mean CGRect
+        return CGRect(x: meanOriginX, y: meanOriginY, width: meanWidth, height: meanHeight)
+    }
+
     func drawVisionRequestResults(_ results: [Any]) {
         CATransaction.begin()
         CATransaction.setValue(kCFBooleanTrue, forKey: kCATransactionDisableActions)
@@ -275,7 +321,14 @@ class VisionObjectRecognitionViewController: ViewController {
         //print(result_1.featureName)
         
         let boundingBox_result = getBoundingBox(feature:result_1.featureValue.multiArrayValue!)
-        let boundingBox = boundingBox_result.0
+        var boundingBox = boundingBox_result.0
+//        if boundingBox_result.0.width != 0 &&  boundingBox_result.0.height != 0 {
+            boundingBoxWindow[window_index] = boundingBox
+            window_index = (window_index+1)%boundingBoxWindow.count
+            print(window_index)
+//        }
+        //print("assf", boundingBoxWindow)
+        boundingBox = meanRect(of: boundingBoxWindow)
         let confidence = boundingBox_result.1
         //print(confidence)
         if confidence > 0.03 {
@@ -294,8 +347,16 @@ class VisionObjectRecognitionViewController: ViewController {
             boundingBoxLayer.borderColor = UIColor.red.cgColor
             boundingBoxLayer.borderWidth = 2.0
             print(bufferSize.width)
-            boundingBoxLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(0)).scaledBy(x: 0.7, y: -1))
+            boundingBoxLayer.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(0)).scaledBy(x: 0.6, y: -1))
             
+            
+            let target_volume = 100.0 + 50//bottom error
+            let target_height = target_volume/320
+            let boundingBoxLayer2 = CALayer()
+            boundingBoxLayer2.frame = CGRect(x: (boundingBox.minX+boundingBox.width*CGFloat(1-target_height))*CGFloat(bufferSize.width), y: boundingBox.minY*CGFloat(bufferSize.height), width: boundingBox.width*CGFloat(target_height)*CGFloat(bufferSize.width), height: boundingBox.height*CGFloat(bufferSize.height)) // Example bounding box
+            boundingBoxLayer2.borderColor = UIColor.blue.cgColor
+            boundingBoxLayer2.borderWidth = 2.0
+            boundingBoxLayer2.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(0)).scaledBy(x: 0.6, y: -1))
 //            let maskLayer = CALayer()
 //            let mask = getMask(boundingBox, masks: result_0.featureValue.multiArrayValue!, masks_weight: result_1.featureValue.multiArrayValue!)
 //            for y in 0..<mask.count {
@@ -315,6 +376,7 @@ class VisionObjectRecognitionViewController: ViewController {
 //            }
 //            boundingBoxLayer.addSublayer(maskLayer)
             detectionOverlay.addSublayer(boundingBoxLayer)
+            //detectionOverlay.addSublayer(boundingBoxLayer2)
             self.begin_measure = true
         }
         self.updateLayerGeometry()
@@ -466,9 +528,9 @@ class VisionObjectRecognitionViewController: ViewController {
         let yScale: CGFloat = bounds.size.height / bufferSize.width
         
         scale = fmax(xScale, yScale)
-        print(xScale)
-        print(yScale)
-        print(scale)
+        print(bounds.size.width)
+        
+        print(bounds.size.height)
         if scale.isInfinite {
             scale = 1.0
         }
